@@ -26,7 +26,7 @@ public class UserController {
     }
 
     // Create a new user
-    @PostMapping("/{createUser}")
+    @PostMapping()
     public ResponseEntity<User> createUser(@RequestBody User user) {
         User newUser = userServices.postService(user, null); // Assuming null is acceptable for the ID when creating a new user
         return new ResponseEntity<>(newUser, HttpStatus.CREATED);

@@ -28,4 +28,6 @@ public class User {
     @DBRef//for Creating Reference of type journalEntries
     private List<JournalEntry> journalEntries=new ArrayList<>();
 
+    private ArrayList<String> roles;
+
 }
