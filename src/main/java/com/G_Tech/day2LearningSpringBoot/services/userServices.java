@@ -1,5 +1,6 @@
 package com.G_Tech.day2LearningSpringBoot.services;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,13 +19,20 @@ public class userServices {
 
     @Autowired
     userRepo userRepo;
+    @Autowired
+    userServices userServicesProvider;
+
     public List<User> getService(){
         return userRepo.findAll(); 
     }
 
-    public User postService(User userBody,ObjectId id){
+    public User saveNewUser(User userBody){
         
         userBody.setPassword(passwordEncoder.encode(userBody.getPassword()));
+        userBody.setRoles(Arrays.asList("User"));
+        return userRepo.save(userBody);
+    }
+    public User saveUser(User userBody){
         return userRepo.save(userBody);
     }
 
@@ -44,15 +52,15 @@ public class userServices {
             if(userbody.getUserName()!=null && !userbody.getPassword().equals("")){
                 oldUser.get().setUserName(userbody.getUserName());
                 oldUser.get().setPassword(userbody.getPassword());
-                userRepo.save(oldUser.get());
-                return oldUser.get();
+                return userServicesProvider.saveNewUser(oldUser.get());
+                
             }
 
         }
         return null;
     }
     
-    public Optional<User> getIdService(String username){
+    public Optional<User> getUserByUsername(String username){
         return userRepo.findByUserName(username).isPresent()?userRepo.findByUserName(username):null;
     }
 }
