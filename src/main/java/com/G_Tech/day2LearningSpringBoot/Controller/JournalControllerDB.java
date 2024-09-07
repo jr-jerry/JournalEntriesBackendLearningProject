@@ -53,7 +53,7 @@ public class JournalControllerDB {
     public ResponseEntity<JournalEntry> postMethodName(@RequestBody JournalEntry entry) {
         Authentication authenticationProvider=SecurityContextHolder.getContext().getAuthentication();
         String userName=authenticationProvider.getName();
-        try{
+            try{
             JournalEntry createdEntry=journalentryservices.createentry(entry,userName);
             return new ResponseEntity<>(createdEntry,HttpStatus.CREATED);
         }
@@ -87,9 +87,9 @@ public class JournalControllerDB {
         if(userInDb==null){
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-        boolean check=userInDb.getJournalEntries().contains(id);
+        boolean check=userInDb.getJournalEntries().stream().anyMatch(entry->entry.getid().equals(id));
 
-       List<JournalEntry> foundEntryList=userInDb.getJournalEntries().stream().filter(entry->entry.equals(id)).collect(Collectors.toList());//finding entry reference from User
+       List<JournalEntry> foundEntryList=userInDb.getJournalEntries().stream().filter(entry->entry.getid().equals(id)).collect(Collectors.toList());//finding entry reference from User
 
        //finding entry from List of JournalEntry
 
@@ -106,28 +106,40 @@ public class JournalControllerDB {
     
 
 
-    @DeleteMapping("id/{username}/{value}")
-    public ResponseEntity<JournalEntry> delEntry(@PathVariable ObjectId value,@PathVariable String username){
-        Optional<JournalEntry> entry=journalrepo.findById(value);
+    @DeleteMapping("/{id}")
+    public ResponseEntity<JournalEntry> delEntry(@PathVariable ObjectId id){
+        Authentication authenticationProvider=SecurityContextHolder.getContext().getAuthentication();
+        String userName=authenticationProvider.getName();
+
+        User userInDb=userRepoProvider.findByUserName(userName).orElse(null);
+        Boolean check=userInDb.getJournalEntries().stream().anyMatch(eachEntry->eachEntry.getid().equals(id));
+        if(check){
+            Optional<JournalEntry> entry=journalrepo.findById(id);
         if(entry.isPresent()){
-                journalentryservices.delService(value,username);
+                journalentryservices.delService(id,userName);
                 return new ResponseEntity<>(entry.get(),HttpStatus.NO_CONTENT);
+
+        }
 
         }
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     
     }
-    @PutMapping("id/{username}/{value}")
-    public ResponseEntity<JournalEntry> putMethodName(
-        @PathVariable ObjectId value,
-         @RequestBody JournalEntry entity,
-         @PathVariable String username) {
+    @PutMapping("{id}")
+    public ResponseEntity<JournalEntry> putMethodName(@PathVariable ObjectId id,@RequestBody JournalEntry entry) {
 
+        Authentication authenticationProvider=SecurityContextHolder.getContext().getAuthentication();
+        String userName=authenticationProvider.getName();
 
-        Optional<JournalEntry> checkEntry=journalrepo.findById(value);
-        if(checkEntry.isPresent()){
-           JournalEntry UpdateEntry= journalentryservices.putService(entity,value,username); 
-            return new ResponseEntity<>(UpdateEntry,HttpStatus.CREATED);
+        User userInDb=userRepoProvider.findByUserName(userName).orElse(null);
+        Boolean check=userInDb.getJournalEntries().stream().anyMatch(eachEntry->eachEntry.getid().equals(id));
+
+        if(check){ 
+            Optional<JournalEntry> checkEntry=journalrepo.findById(id);
+                if(checkEntry.isPresent()){
+                JournalEntry UpdateEntry= journalentryservices.putService(entry,id,userName); 
+                    return new ResponseEntity<>(UpdateEntry,HttpStatus.CREATED);
+                }
         }
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         
