@@ -1,6 +1,8 @@
 package com.G_Tech.day2LearningSpringBoot.services;
 
 import java.util.Arrays;
+import java.util.ArrayList;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -34,6 +36,15 @@ public class userServices {
     }
     public User saveUser(User userBody){
         return userRepo.save(userBody);
+    }
+    
+    public User saveAdmin(User adminDetial){
+        adminDetial.setPassword(passwordEncoder.encode(adminDetial.getPassword()));
+        List<String> userRole=new ArrayList<>();
+        userRole.add("user");
+        userRole.add("admin");
+        adminDetial.setRoles(userRole);
+       return userRepo.save(adminDetial);
     }
 
     public User delService(String userName){
